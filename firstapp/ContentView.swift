@@ -4,11 +4,7 @@
 //
 //  Created by young kim on 7/26/25.
 //
-
 import SwiftUI
-import CoreLocation
-import MapKit
-
 
 struct ContentView: View {
     var body: some View {
@@ -24,6 +20,11 @@ struct ContentView: View {
                 }
                 .buttonStyle(.bordered)
 
+                NavigationLink("Location history") {
+                    LocationListView()
+                }
+                .buttonStyle(.bordered)
+
                 Spacer()
             }
             .padding()
@@ -31,6 +32,7 @@ struct ContentView: View {
         }
     }
 }
+
 
 
 

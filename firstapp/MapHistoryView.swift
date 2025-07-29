@@ -16,7 +16,12 @@ struct MapHistoryView: View {
 
     var body: some View {
         Map(coordinateRegion: $region, annotationItems: locationManager.points) { point in
-            MapPin(coordinate: point.coordinate, tint: .blue)
+            MapAnnotation(coordinate: point.coordinate) {
+                Image(systemName: "mappin.circle.fill")
+                    .resizable()
+                    .frame(width: 25, height: 25)
+                    .foregroundColor(.blue)
+            }
         }
         .onChange(of: locationManager.points.count) { _ in
             if let last = locationManager.points.last {
@@ -26,3 +31,4 @@ struct MapHistoryView: View {
         .ignoresSafeArea()
     }
 }
+
