@@ -95,5 +95,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             print("⚠️ Failed to delete file: \(error)")
         }
     }
+    
+    func restoreHistory(from backup: [LocationPoint]) {
+        points = backup
+    }
+
 
 }
