@@ -29,6 +29,12 @@ struct ContentView: View {
                     JSONContentView()
                 }
                 .buttonStyle(.bordered)
+                
+                NavigationLink("Delete history") {
+                    DeleteHistoryView()
+                }
+                .buttonStyle(.bordered)
+
 
                 Spacer()
             }

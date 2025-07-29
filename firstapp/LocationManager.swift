@@ -54,7 +54,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 let minutes = time.timeIntervalSince(last.timestamp) / 60.0
 
                 // Only add if it's 5+ minutes OR distance > 10 meters
-                if minutes >= 5 || distance > 10 {
+                if minutes >= 10 || distance > 100 {
                     self.points.append(newPoint)
                 }
             } else {
@@ -84,4 +84,16 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             self.points = []
         }
     }
+    
+    func clearHistory() {
+        points = []
+
+        do {
+            try FileManager.default.removeItem(at: saveFileURL)
+            print("🗑️ History file deleted.")
+        } catch {
+            print("⚠️ Failed to delete file: \(error)")
+        }
+    }
+
 }
