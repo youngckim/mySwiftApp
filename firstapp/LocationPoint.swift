@@ -18,6 +18,13 @@ struct LocationPoint: Identifiable, Equatable {
     }
 }
 
+extension CLLocationCoordinate2D {
+    func distance(to other: CLLocationCoordinate2D) -> CLLocationDistance {
+        let loc1 = CLLocation(latitude: self.latitude, longitude: self.longitude)
+        let loc2 = CLLocation(latitude: other.latitude, longitude: other.longitude)
+        return loc1.distance(from: loc2) // in meters
+    }
+}
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
@@ -50,10 +57,21 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     private func addPoint(from loc: CLLocation, at time: Date) {
         DispatchQueue.main.async {
-            let newPoint = LocationPoint(coordinate: loc.coordinate, timestamp: time)
-            
-            self.points.append(newPoint)
-            self.lastRecordTime = time
+            if let last = self.points.last {
+                let distance = last.coordinate.distance(to: loc.coordinate)
+                let minutes = time.timeIntervalSince(last.timestamp) / 60
+
+                // Only add if at least 5 minutes passed and 10 meters moved
+                if minutes >= 5 && distance > 10 {
+                    self.points.append(LocationPoint(coordinate: loc.coordinate, timestamp: time))
+                    self.lastRecordTime = time
+                }
+            } else {
+                // First point
+                self.points.append(LocationPoint(coordinate: loc.coordinate, timestamp: time))
+                self.lastRecordTime = time
+            }
         }
     }
+
 }
