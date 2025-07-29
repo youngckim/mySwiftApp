@@ -25,6 +25,11 @@ struct ContentView: View {
                 }
                 .buttonStyle(.bordered)
 
+                NavigationLink("View content of JSON") {
+                    JSONContentView()
+                }
+                .buttonStyle(.bordered)
+
                 Spacer()
             }
             .padding()

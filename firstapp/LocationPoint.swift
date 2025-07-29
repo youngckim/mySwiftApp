@@ -8,16 +8,6 @@
 import CoreLocation
 import MapKit
 
-struct LocationPoint: Identifiable, Equatable {
-    let id = UUID()
-    let coordinate: CLLocationCoordinate2D
-    let timestamp: Date
-    
-    static func == (lhs: LocationPoint, rhs: LocationPoint) -> Bool {
-        return lhs.id == rhs.id
-    }
-}
-
 extension CLLocationCoordinate2D {
     func distance(to other: CLLocationCoordinate2D) -> CLLocationDistance {
         let loc1 = CLLocation(latitude: self.latitude, longitude: self.longitude)
@@ -26,52 +16,45 @@ extension CLLocationCoordinate2D {
     }
 }
 
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let manager = CLLocationManager()
-    //@Published var locations: [CLLocation] = []
-    @Published var points: [LocationPoint] = []
-    
-    private var lastRecordTime: Date? = nil
 
-    override init() {
-        super.init()
-        manager.delegate = self
-        manager.requestAlwaysAuthorization()
-        manager.allowsBackgroundLocationUpdates = true
-        manager.pausesLocationUpdatesAutomatically = false
-        manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.startUpdatingLocation()
+struct LocationPoint: Identifiable, Codable, Equatable, Hashable {
+    let id = UUID()
+    let coordinate: CLLocationCoordinate2D
+    let timestamp: Date
+
+    enum CodingKeys: CodingKey {
+        case latitude, longitude, timestamp
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations newLocations: [CLLocation]) {
-        guard let latest = newLocations.last else { return }
-        let now = Date()
-        if let last = lastRecordTime {
-            if now.timeIntervalSince(last) >= 300 {
-                addPoint(from: latest, at: now)
-            }
-        } else {
-            addPoint(from: latest, at: now)
-        }
+    init(coordinate: CLLocationCoordinate2D, timestamp: Date) {
+        self.coordinate = coordinate
+        self.timestamp = timestamp
     }
 
-    private func addPoint(from loc: CLLocation, at time: Date) {
-        DispatchQueue.main.async {
-            if let last = self.points.last {
-                let distance = last.coordinate.distance(to: loc.coordinate)
-                let minutes = time.timeIntervalSince(last.timestamp) / 60
-
-                // Only add if at least 5 minutes passed and 10 meters moved
-                if minutes >= 5 && distance > 10 {
-                    self.points.append(LocationPoint(coordinate: loc.coordinate, timestamp: time))
-                    self.lastRecordTime = time
-                }
-            } else {
-                // First point
-                self.points.append(LocationPoint(coordinate: loc.coordinate, timestamp: time))
-                self.lastRecordTime = time
-            }
-        }
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let lat = try container.decode(CLLocationDegrees.self, forKey: .latitude)
+        let lon = try container.decode(CLLocationDegrees.self, forKey: .longitude)
+        coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
     }
 
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(coordinate.latitude, forKey: .latitude)
+        try container.encode(coordinate.longitude, forKey: .longitude)
+        try container.encode(timestamp, forKey: .timestamp)
+    }
+
+    static func == (lhs: LocationPoint, rhs: LocationPoint) -> Bool {
+        lhs.coordinate.latitude == rhs.coordinate.latitude &&
+        lhs.coordinate.longitude == rhs.coordinate.longitude &&
+        lhs.timestamp == rhs.timestamp
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(coordinate.latitude)
+        hasher.combine(coordinate.longitude)
+        hasher.combine(timestamp)
+    }
 }

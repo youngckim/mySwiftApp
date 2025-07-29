@@ -10,7 +10,7 @@ import MapKit
 struct MapHistoryView: View {
     @StateObject private var locationManager = LocationManager()
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 37.3349, longitude: -122.0090),
+        center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
         span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     )
 
@@ -21,6 +21,11 @@ struct MapHistoryView: View {
                     .resizable()
                     .frame(width: 25, height: 25)
                     .foregroundColor(.blue)
+            }
+        }
+        .onAppear {
+            if let first = locationManager.points.last {
+                region.center = first.coordinate
             }
         }
         .onChange(of: locationManager.points.count) { _ in
